@@ -1,0 +1,29 @@
+services:
+  backend:
+    build: ./backend
+    env_file: .env
+    environment:
+      DOCS_DIR: /data
+      CHROMA_DIR: /chroma
+    volumes:
+      # Text/markdown files to index (read-only)
+      - ${DOCS_DIR_HOST:-${HOME}/Documents/RAGapp}:/data:ro
+      # Persisted vector store
+      - chroma_data:/chroma
+      # Cached local embedding model download
+      - model_cache:/root/.cache/chroma
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+
+  frontend:
+    build: ./frontend
+    depends_on:
+      - backend
+    ports:
+      - "3000:80"
+    restart: unless-stopped
+
+volumes:
+  chroma_data:
+  model_cache:
