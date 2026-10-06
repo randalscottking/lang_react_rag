@@ -4,6 +4,8 @@ Minimal RAG app: LangChain + Chroma + Claude, served by FastAPI, with a one-box 
 
 ## Architecture
 
+![Architecture diagram](docs/architecture.svg)
+
 ```mermaid
 flowchart LR
     User([User]) --> UI["React UI<br/>(served by nginx, :3000)"]
