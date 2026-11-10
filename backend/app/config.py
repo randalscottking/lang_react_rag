@@ -8,7 +8,12 @@ COLLECTION_NAME = os.getenv("COLLECTION_NAME", "ragapp")
 CLAUDE_MODEL = os.getenv("CLAUDE_MODEL", "claude-sonnet-5-5")
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "")
 
-CHUNK_SIZE = int(os.getenv("CHUNK_SIZE", "1000"))
+# Guardrails
+GUARDRAILS_ENABLED = os.getenv("GUARDRAILS_ENABLED", "true").lower() not in {"0", "false", "no"}
+GUARD_MODEL = os.getenv("GUARD_MODEL", "claude-haiku-5-5")
+ALLOWED_TOPICS = os.getenv("ALLOWED_TOPICS", "questions about the contents of the indexed documents")
+
+CHUNK_SIZE =int(os.getenv("CHUNK_SIZE", "1000"))
 CHUNK_OVERLAP = int(os.getenv("CHUNK_OVERLAP", "150"))
 TOP_K = int(os.getenv("TOP_K", "4"))
 
