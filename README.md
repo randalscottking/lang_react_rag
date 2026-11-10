@@ -44,6 +44,18 @@ Claude is used only for generation. Embeddings come from a separate local model,
 - `POST /api/chat` retrieves the top matching chunks and asks Claude to answer from them only.
 - `POST /api/reindex` rebuilds the index after you add or change files.
 
+## Guardrails
+
+Implemented in `backend/app/guardrails.py`, all within LangChain (no external guardrail service):
+
+1. **Regex pre-filter** blocks obvious prompt-injection phrasing.
+2. **PII redaction** (regex: email, SSN, Luhn-checked cards, phone, IPv4) on the question before it reaches the model, and on the answer before it is returned.
+3. **Input guard**: a small Claude model (`GUARD_MODEL`) classifies the question via structured output (prompt attacks, off-topic, harmful).
+4. **Prompt hardening**: retrieved chunks are wrapped in `<document>` tags and treated as data, not instructions.
+5. **Grounding check**: a judge model verifies the answer is supported by the retrieved chunks; otherwise it is replaced and sources are withheld.
+
+LLM-backed checks fail closed. Run tests with `pip install -r backend/requirements-dev.txt && cd backend && pytest`.
+
 ## Run with Docker
 
 ```bash
@@ -83,3 +95,6 @@ npm run dev                 # http://localhost:5173, proxies /api to :8000
 | `CLAUDE_MODEL` | `claude-sonnet-5-5` |
 | `CHUNK_SIZE` / `CHUNK_OVERLAP` | `1000` / `150` |
 | `TOP_K` | `4` |
+| `GUARDRAILS_ENABLED` | `true` |
+| `GUARD_MODEL` | `claude-haiku-5-5` |
+| `ALLOWED_TOPICS` | `questions about the contents of the indexed documents` |
