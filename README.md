@@ -20,19 +20,21 @@ flowchart LR
 
     subgraph Query["Query time"]
         direction TB
-        Retriever["LangChain retriever"] --> Prompt["Prompt: context + question"]
+        InGuard["Input guardrails<br/>regex, PII mask, LLM check"] --> Retriever["LangChain retriever"]
+        Retriever --> Prompt["Prompt: context + question"]
         Prompt --> Claude["Claude API<br/>(Anthropic)"]
+        Claude --> OutGuard["Output guardrails<br/>grounding check, PII mask"]
     end
 
-    API --> Retriever
+    API --> InGuard
     Retriever -. "embed question" .-> Embed
     Retriever -- "top-k similarity search" --> Chroma
-    Claude -- "answer + sources" --> API
+    OutGuard -- "answer + sources" --> API
     API --> UI
     API -. "startup / reindex" .-> Loader
 ```
 
-**Query flow:** the question goes from the browser through nginx to FastAPI. The question is embedded locally and Chroma returns the closest chunks. Those chunks and the question are sent to Claude, which answers from the retrieved context only. The answer and source file names return to the UI.
+**Query flow:** the question goes from the browser through nginx to FastAPI, then through the input guardrails (regex filter, PII masking, LLM check); blocked requests get a refusal here. The question is embedded locally and Chroma returns the closest chunks. Those chunks and the question are sent to Claude, which answers from the retrieved context only. The answer then passes the output guardrails (PII masking, grounding check); ungrounded answers are replaced and their sources withheld. The answer and source file names return to the UI.
 
 **Indexing flow:** on startup (and on `POST /api/reindex`) the backend reads `.txt` / `.md` files, splits them into chunks, embeds each chunk with the local model, and writes the vectors to Chroma.
 
